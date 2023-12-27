@@ -6,6 +6,8 @@ Welcome to StandUP - a reminder app designed to aid users in maintaining a healt
 ## Purpose
 The primary goal of StandUP is to serve as a reliable reminder for users to adjust their standing desks periodically, promoting healthier work habits by alternating between sitting and standing positions. By utilizing the phone's acceleration sensor, the application aims to detect the direction of movement—upwards or downwards—to infer whether the user is in a sitting or standing position.
 
+[Screenshot](./Screenshot.png)
+
 ## Features (Planned)
 - **Reminder Notifications:** A planned feature to send timely reminders, prompting users to adjust their standing desks at customizable intervals.
 - **Customizable Intervals:** Users will have the ability to set the frequency of reminders based on their preferences and work routines.
