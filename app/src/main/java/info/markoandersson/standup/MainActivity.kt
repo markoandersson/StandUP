@@ -13,18 +13,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import info.markoandersson.standup.ui.theme.StandUpTheme
@@ -41,7 +39,14 @@ class MainActivity : ComponentActivity() {
         val sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager;
         val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
-        val stateMachine = StandUpStateMachine().create()
+        val state = mutableStateOf(StandUpStateMachine.unknown)
+
+        val notify : (newState: State) -> Unit = {
+            state.value = it
+        }
+
+        val stateMachine = StandUpStateMachine(state.value).create(notify)
+
 
         val movementDetector = MovementDetector(
             onMovingUp = { stateMachine.fire(UpwardAcceleration()) },
@@ -61,7 +66,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    CurrentState(stateMachine.currentState)
+                    CurrentState(state)
                 }
             }
         }
@@ -70,12 +75,12 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-fun CurrentState(state: State, modifier: Modifier = Modifier) {
+fun CurrentState(state: MutableState<State>, modifier: Modifier = Modifier) {
 
     val textStyle = TextStyle(fontSize = 24.sp)
 
-    var state by remember {
-        mutableStateOf(state)
+    val state by remember {
+        state
     }
 
     Column(modifier = modifier.padding(all = 5.dp)) {
@@ -90,14 +95,6 @@ fun CurrentState(state: State, modifier: Modifier = Modifier) {
             }
         }
         Spacer(modifier = Modifier.height(5.dp))
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    StandUpTheme {
-        CurrentState(StandUpStateMachine.unknown)
     }
 }
 

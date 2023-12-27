@@ -18,7 +18,7 @@ class MovementDetector(
         Log.d("StandUp", "Calibrated to $it")
     })
 
-    private val movementThreshold = Threshold(0.06f, 0.20f)
+    private val movementThreshold = Threshold(0.05f, 0.20f)
 
     fun onSensorValue(z: Float) {
 

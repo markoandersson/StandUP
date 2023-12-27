@@ -6,11 +6,12 @@ import org.jeasy.states.api.Event
 import org.jeasy.states.api.EventHandler
 import org.jeasy.states.api.FiniteStateMachine
 import org.jeasy.states.api.State
+import org.jeasy.states.api.Transition
 import org.jeasy.states.core.FiniteStateMachineBuilder
 import org.jeasy.states.core.TransitionBuilder
 
-internal class UpwardAcceleration : AbstractEvent()
-internal class DownwardAcceleration : AbstractEvent()
+internal class UpwardAcceleration : AbstractEvent("UpwardAcceleration")
+internal class DownwardAcceleration : AbstractEvent("DownwardAcceleration")
 
 class StandUpStateMachine {
 
@@ -34,9 +35,10 @@ class StandUpStateMachine {
     private val states = setOf(unknown, standing, raising, sitting, lowering)
 
 
-    fun create() : FiniteStateMachine {
+    fun create(notify: (State) -> Unit = {}): FiniteStateMachine {
 
-        return FiniteStateMachineBuilder(states, startState)
+        val stateMachine = FiniteStateMachineBuilder(states, startState)
+
             .registerTransition(
                 TransitionBuilder()
                     .name("raising from unknown")
@@ -111,8 +113,61 @@ class StandUpStateMachine {
             )
             .build()
 
+        return StateMachineNotifier(stateMachine, notify)
+
     }
 
+}
+
+class StateMachineNotifier(private val stateMachine: FiniteStateMachine, val notify: (State) -> Unit) :
+    FiniteStateMachine {
+
+    private var lastEventName : String? = null
+    private var lastEventTime : Long? = null
+    override fun getCurrentState(): State {
+        return stateMachine.currentState
+    }
+
+    override fun getInitialState(): State {
+        return stateMachine.initialState
+    }
+
+    override fun getFinalStates(): MutableSet<State> {
+        return stateMachine.finalStates
+    }
+
+    override fun getStates(): MutableSet<State> {
+        return stateMachine.states
+    }
+
+    override fun getTransitions(): MutableSet<Transition> {
+        return stateMachine.transitions
+    }
+
+    override fun getLastEvent(): Event {
+        return stateMachine.lastEvent
+    }
+
+    override fun getLastTransition(): Transition {
+        return stateMachine.lastTransition
+    }
+
+    override fun fire(event: Event?): State {
+
+        if (lastEventName != null && lastEventName == event?.name && lastEventTime!! + 500 > event!!.timestamp) {
+            // Events too close to each other, ignore
+            return stateMachine.currentState
+        }
+
+        val newState = stateMachine.fire(event)
+
+        notify(newState)
+
+        lastEventName = event?.name
+        lastEventTime = event?.timestamp
+
+        return newState
+    }
 }
 
 class Sitting : EventHandler<Event> {
